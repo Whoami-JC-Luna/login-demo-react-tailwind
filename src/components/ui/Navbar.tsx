@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { usePageTransition } from "../../context/TransitionContext";
 import Container from "./Container";
 import logo from "../../assets/mi-logo.png";
 
@@ -11,6 +12,7 @@ interface NavbarProps {
 export default function Navbar({ variant }: NavbarProps) {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { navigateTo } = usePageTransition();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -33,12 +35,12 @@ export default function Navbar({ variant }: NavbarProps) {
           </div>
           <div className="col-start-11 col-span-2 flex justify-end">
             {variant === "landing" && (
-              <button onClick={() => navigate("/login")} className="bg-[#026773] text-white rounded-2xl px-4 py-2 text-sm hover:bg-cyan-950 transition-colors">
+              <button onClick={() => navigateTo("/login", "Login")} className="bg-[#026773] text-white rounded-2xl px-4 py-2 text-sm hover:bg-cyan-950 transition-colors">
                 Acceder a la demo
               </button>
             )}
             {variant === "auth" && (
-              <button onClick={() => navigate("/")} className="text-sm hover:underline">← Volver</button>
+              <button onClick={() => navigateTo("/", "Home")} className="text-sm hover:underline">← Volver</button>
             )}
             {variant === "dashboard" && (
               <button onClick={handleLogout} className="text-sm hover:underline">Logout</button>
@@ -52,7 +54,7 @@ export default function Navbar({ variant }: NavbarProps) {
 
           <div className="flex items-center gap-4">
             {variant === "auth" && (
-              <button onClick={() => navigate("/")} className="text-sm hover:underline">← Volver</button>
+              <button onClick={() => navigateTo("/", "Home")} className="text-sm hover:underline">← Volver</button>
             )}
             {variant === "dashboard" && (
               <button onClick={handleLogout} className="text-sm hover:underline">Logout</button>
