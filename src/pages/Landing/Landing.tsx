@@ -1,11 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { usePageTransition } from "../../context/TransitionContext";
 import Navbar from "../../components/ui/Navbar";
 import Guestbook from "../../components/ui/Guestbook";
 import Container from "../../components/ui/Container";
 import heroImage from "../../assets/landing.jpg";
 
 export default function Landing() {
-  const navigate = useNavigate();
+const { navigateTo } = usePageTransition();
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${heroImage})` }}>
@@ -32,7 +32,7 @@ export default function Landing() {
               No te olvides de firmar el guestbook.
             </p>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigateTo("/login", "Login")}
               className="animate-fade-up delay-10 text-white bg-[#096772] rounded-4xl px-8 py-4 w-fit text-l hover:bg-cyan-950 hover:scale-105 transition-all mb-5 md:mb-0"
             >
               Acceder a la demo
@@ -48,10 +48,6 @@ export default function Landing() {
               ©{new Date().getFullYear()} Designed & developed by <span className="text-[#026773] font-medium">Juan Carlos Luna.</span>
             </p>
           </div>
-
-
-
-
 
           {/* Guestbook */}
           <div className="col-span-1 md:col-start-8 md:col-span-5 border-t md:border-t-0 md:border-l border-gray-300 animate-fade-up delay-500">
