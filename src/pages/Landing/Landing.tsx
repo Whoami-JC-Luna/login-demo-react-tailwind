@@ -1,11 +1,26 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { usePageTransition } from "../../context/TransitionContext";
 import Navbar from "../../components/ui/Navbar";
 import Guestbook from "../../components/ui/Guestbook";
 import Container from "../../components/ui/Container";
+import RegisterModal from "../../components/ui/RegisterModal";
 import heroImage from "../../assets/landing.jpg";
 
 export default function Landing() {
-const { navigateTo } = usePageTransition();
+  const { navigateTo } = usePageTransition();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [registerOpen, setRegisterOpen] = useState(location.pathname === "/register");
+
+  useEffect(() => {
+    if (location.pathname === "/register") setRegisterOpen(true);
+  }, [location.pathname]);
+
+  const closeRegister = () => {
+    setRegisterOpen(false);
+    if (location.pathname === "/register") navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${heroImage})` }}>
@@ -55,6 +70,8 @@ const { navigateTo } = usePageTransition();
           </div>
         </div>
       </Container>
+
+      {registerOpen && <RegisterModal onClose={closeRegister} />}
     </div>
   );
 }
