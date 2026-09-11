@@ -1,32 +1,49 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { usePageTransition } from "../../context/TransitionContext";
 import Navbar from "../../components/ui/Navbar";
 import Guestbook from "../../components/ui/Guestbook";
 import Container from "../../components/ui/Container";
+import LoginModal from "../../components/ui/LoginModal";
 import RegisterModal from "../../components/ui/RegisterModal";
 import heroImage from "../../assets/landing.jpg";
 
+type AuthView = "login" | "register" | null;
+
+const SWITCH_ANIMATION_MS = 500;
+
 export default function Landing() {
-  const { navigateTo } = usePageTransition();
   const location = useLocation();
   const navigate = useNavigate();
-  const [registerOpen, setRegisterOpen] = useState(location.pathname === "/register");
+  const [authView, setAuthView] = useState<AuthView>(
+    location.pathname === "/login" ? "login" : location.pathname === "/register" ? "register" : null
+  );
+  const [outgoingView, setOutgoingView] = useState<AuthView>(null);
+  const [switchDirection, setSwitchDirection] = useState<"left" | "right">("left");
 
   useEffect(() => {
-    if (location.pathname === "/register") setRegisterOpen(true);
+    if (location.pathname === "/login") setAuthView("login");
+    if (location.pathname === "/register") setAuthView("register");
   }, [location.pathname]);
 
-  const closeRegister = () => {
-    setRegisterOpen(false);
-    if (location.pathname === "/register") navigate("/");
+  const closeAuth = () => {
+    setAuthView(null);
+    setOutgoingView(null);
+    if (location.pathname === "/login" || location.pathname === "/register") navigate("/");
+  };
+
+  const switchAuth = (to: "login" | "register") => {
+    setSwitchDirection(to === "register" ? "left" : "right");
+    setOutgoingView(authView);
+    setAuthView(to);
+    navigate(`/${to}`);
+    setTimeout(() => setOutgoingView(null), SWITCH_ANIMATION_MS);
   };
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{ backgroundImage: `url(${heroImage})` }}>
       <div className="absolute inset-0 bg-[#e6dfd77e] md:bg-[#dfd1bf4c]" />
       <Container>
-        <Navbar variant="landing" />
+        <Navbar variant="landing" onAccessClick={() => setAuthView("login")} />
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:min-h-[calc(100vh-95px)]">
           {/* Hero */}
@@ -47,7 +64,7 @@ export default function Landing() {
               No te olvides de firmar el guestbook.
             </p>
             <button
-              onClick={() => navigateTo("/login", "Login")}
+              onClick={() => setAuthView("login")}
               className="animate-fade-up delay-10 text-white bg-[#096772] rounded-4xl px-8 py-4 w-fit text-l hover:bg-cyan-950 hover:scale-105 transition-all mb-5 md:mb-0"
             >
               Acceder a la demo
@@ -71,7 +88,25 @@ export default function Landing() {
         </div>
       </Container>
 
-      {registerOpen && <RegisterModal onClose={closeRegister} />}
+      {authView === "login" && (
+        <LoginModal
+          onClose={closeAuth}
+          onSwitchToRegister={() => switchAuth("register")}
+          entering={outgoingView !== null}
+          direction={switchDirection}
+        />
+      )}
+      {outgoingView === "login" && <LoginModal onClose={() => { }} exiting direction={switchDirection} />}
+
+      {authView === "register" && (
+        <RegisterModal
+          onClose={closeAuth}
+          onSwitchToLogin={() => switchAuth("login")}
+          entering={outgoingView !== null}
+          direction={switchDirection}
+        />
+      )}
+      {outgoingView === "register" && <RegisterModal onClose={() => { }} exiting direction={switchDirection} />}
     </div>
   );
 }

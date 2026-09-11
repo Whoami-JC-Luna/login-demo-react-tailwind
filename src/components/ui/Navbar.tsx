@@ -7,9 +7,10 @@ import logo from "../../assets/mi-logo.png";
 
 interface NavbarProps {
   variant: "landing" | "auth" | "dashboard";
+  onAccessClick?: () => void;
 }
 
-export default function Navbar({ variant }: NavbarProps) {
+export default function Navbar({ variant, onAccessClick }: NavbarProps) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { navigateTo } = usePageTransition();
@@ -35,7 +36,7 @@ export default function Navbar({ variant }: NavbarProps) {
           </div>
           <div className="col-start-11 col-span-2 flex justify-end">
             {variant === "landing" && (
-              <button onClick={() => navigateTo("/login", "Login")} className="bg-[#026773] text-white rounded-2xl px-4 py-2 text-sm hover:bg-cyan-950 transition-colors">
+              <button onClick={() => onAccessClick?.()} className="bg-[#026773] text-white rounded-2xl px-4 py-2 text-sm hover:bg-cyan-950 transition-colors">
                 Acceder a la demo
               </button>
             )}

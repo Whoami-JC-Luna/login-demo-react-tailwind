@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -6,6 +6,10 @@ const ANIMATION_MS = 400;
 
 interface RegisterModalProps {
   onClose: () => void;
+  onSwitchToLogin?: () => void;
+  entering?: boolean;
+  exiting?: boolean;
+  direction?: "left" | "right";
 }
 
 function Check({ ok, label }: { ok: boolean; label: string }) {
@@ -27,7 +31,7 @@ function Check({ ok, label }: { ok: boolean; label: string }) {
   );
 }
 
-export default function RegisterModal({ onClose }: RegisterModalProps) {
+export default function RegisterModal({ onClose, onSwitchToLogin, entering, exiting, direction = "left" }: RegisterModalProps) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +63,7 @@ export default function RegisterModal({ onClose }: RegisterModalProps) {
   const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
   const passwordsMatch = password.length > 0 && password === confirmPassword;
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -96,28 +100,51 @@ export default function RegisterModal({ onClose }: RegisterModalProps) {
   };
 
   const goToLogin = () => {
-    onClose();
-    navigate("/login");
+    if (onSwitchToLogin) {
+      onSwitchToLogin();
+    } else {
+      onClose();
+      navigate("/login");
+    }
   };
 
   const shown = visible && !closing;
 
+  const backdropClass = exiting
+    ? "pointer-events-none bg-transparent opacity-100"
+    : entering
+      ? "bg-black/60 opacity-100"
+      : `bg-black/60 ${shown ? "opacity-100" : "opacity-0"}`;
+
+  const exitOffset = direction === "right" ? "translate-x-[120%]" : "-translate-x-[120%]";
+  const enterOffset = direction === "right" ? "-translate-x-[120%]" : "translate-x-[120%]";
+
+  const boxTranslateClass = exiting
+    ? visible
+      ? `opacity-100 ${exitOffset}`
+      : "opacity-100 translate-x-0"
+    : entering
+      ? visible
+        ? "opacity-100 translate-x-0"
+        : `opacity-100 ${enterOffset}`
+      : shown
+        ? "opacity-100 scale-100"
+        : "opacity-0 scale-95";
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 transition-opacity duration-[400ms] ${shown ? "opacity-100" : "opacity-0"
-        }`}
-      onClick={handleClose}
+      className={`fixed inset-0 ${exiting ? "z-40" : "z-50"} flex items-center justify-center p-4 transition-opacity duration-[400ms] ${backdropClass}`}
+      onClick={exiting ? undefined : handleClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-7xl bg-white rounded-2xl overflow-hidden shadow-2xl max-h-[95vh] transition-all duration-[400ms] ${shown ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
+        className={`relative w-full max-w-7xl bg-white rounded-2xl overflow-hidden shadow-2xl max-h-[95vh] transition-all duration-[500ms] ease-out ${boxTranslateClass}`}
       >
         <button
           type="button"
           onClick={handleClose}
           aria-label="Cerrar"
-          className="absolute top-4 right-4 z-10 text-white bg-black/25 hover:bg-black/45 active:bg-black/45 rounded-full w-9 h-9 flex items-center justify-center transition-colors"
+          className="absolute top-2 right-2 z-10 text-white text-xl leading-none hover:opacity-70 active:opacity-70 transition-opacity"
         >
           ✕
         </button>
@@ -273,7 +300,7 @@ export default function RegisterModal({ onClose }: RegisterModalProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent to-55%" />
 
             <div className="relative flex items-center justify-between text-sm text-white">
-              <button type="button" onClick={handleClose} className="underline-offset-4 hover:underline active:underline">
+              <button type="button" onClick={goToLogin} className="underline-offset-4 hover:underline active:underline">
                 ← Volver
               </button>
               <div className="flex gap-6">
@@ -287,11 +314,13 @@ export default function RegisterModal({ onClose }: RegisterModalProps) {
             </div>
 
             <div className="relative mt-auto pt-20">
-              <p className="text-center text-lg text-white/90">
-                La autenticación utiliza JWT con tokens firmados y expiración definida. Las contraseñas
-                se almacenan mediante BCrypt y la autorización se gestiona íntegramente en el backend.
-                El correo puede ser ficticio, siempre que cumpla las validaciones de seguridad y formato.
-              </p>
+              <div className="border border-white/40 rounded-2xl bg-white/5 backdrop-blur-sm px-6 py-6">
+                <p className="text-center text-lg text-white/90">
+                  La autenticación utiliza JWT con tokens firmados y expiración definida. Las contraseñas
+                  se almacenan mediante BCrypt y la autorización se gestiona íntegramente en el backend.
+                  El correo puede ser ficticio, siempre que cumpla las validaciones de seguridad y formato.
+                </p>
+              </div>
             </div>
           </div>
         </div>
